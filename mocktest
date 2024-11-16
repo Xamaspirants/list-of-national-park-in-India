@@ -1,0 +1,814 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Interface</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* General Styles */
+        body {
+            background-color: #f4f6f9;
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin-top: 100px;
+            padding-top: 20px;
+        }
+        .header {
+            width: 100%;
+            background-color: #007bff;
+            color: white;
+            padding: 5px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+          
+            top: 0;
+            left: 0;
+            z-index: 1100;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        
+       .footer p {
+    background-color: #007bff;
+    color: white;
+    height: 60px; /* Fixed height for the footer */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    text-align: center;
+    width: 100%;
+    z-index: 1100;
+    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    overflow: hidden;
+    padding: 0; /* Ensure no extra space is added */
+    margin: 0; /* Ensure no external margins affect layout */
+}
+  
+        
+        .question-card, .timer-bar {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .timer-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #007bff;
+           margin-top: -25px;
+        }
+        .question-card h5 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .options button {
+            background-color: #e9ecef;
+            font-weight: 500;
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: none;
+            margin-bottom: 10px;
+            transition: background-color 0.3s;
+        }
+        .options button:hover {
+            background-color: #dfe4ea;
+        }
+        .options button.selected {
+            background-color: #28a745;
+            color: white;
+        }
+        .sidebar {
+            position: fixed;
+            top: 60px;
+            right: -100%;
+            width: 80%;
+            max-width: 400px;
+            height: calc(100% - 60px);
+            background-color: #f8f9fa;
+            transition: right 0.4s ease;
+            box-shadow: -3px 0 10px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            z-index: 1000;
+            
+        }
+        .sidebar.open {
+            right: 0;
+        }
+        .sidebar-header {
+            font-size: 18px;
+            font-weight: bold;
+            color: #007bff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .sidebar .question-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .sidebar .question-grid button {
+            font-weight: bold;
+            border-radius: 5px;
+            padding: 10px;
+            transition: background-color 0.3s;
+            cursor: pointer;
+        }
+        .status-unattempted {
+            background-color: #6c757d;
+            color: #fff;
+        }
+        .status-marked {
+            background-color: #ffc107;
+            color: #fff;
+        }
+        .status-attempted {
+            background-color: #28a745;
+            color: #fff;
+        }
+        .status-unattempted-red {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        .status-current {
+            border: 2px solid #007bff;
+        }
+        .toggle-btn {
+            background-color: #0056b3;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 50px;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s;
+            display: none;
+        }
+        .toggle-btn:hover {
+            background-color: #003f7f;
+        }
+        .cross {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 50px;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 1100;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s;
+            display: none;
+        }
+        .cross:hover {
+            background-color: #0056b3;
+        }
+        .correct-answer {
+            color: green;
+            font-weight: bold;
+        }
+        .wrong-answer {
+            color: red;
+            font-weight: bold;
+        }
+        ul.results-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        ul.results-list li {
+            margin-bottom: 10px;
+        }
+        /* Landing Page Styles */
+        #landing-page {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+        }
+        #landing-page h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        #landing-page .form-group {
+            margin-bottom: 20px;
+        }
+        #landing-page input {
+            font-size: 18px;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+            display: block;
+        }
+        #landing-page button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #landing-page button:hover {
+            background-color: #218838;
+        }
+
+        @media (max-width: 767px) {
+            .container {
+                padding: 0 15px;
+            }
+            .sidebar {
+                width: 100%;
+            }
+            .cross {
+                position: relative;
+                display: none;
+            }
+            .sidebar.open + .cross {
+                display: block;
+            }
+            .toggle-btn {
+                display: block;
+            }
+        }
+   /* ----------------------------------------------------------------------------------------*/     
+        /*Adding CSS*/
+        
+      /*  .modal-footer{
+          margin-bottom: 0px;
+        }*/
+        .modal-dialog{
+          margin-bottom: 50px;
+        }
+   /* ----------------------------------------------------------------------------------------*/  
+        
+        
+/* Adjustments for Tablet-like Screens (e.g., Nexus 7) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .toggle-btn {
+        display: block; /* Ensure the toggle button is visible */
+    }
+    .cross {
+        display: none; /* Ensure the cross button is hidden initially */
+    }
+    .header {
+        padding: 10px 15px; /* Adjust padding for better alignment */
+        justify-content: space-between;
+    }
+}
+        
+        
+        @media (min-width: 1024px) {
+            .main-wrapper {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                width: 100%;
+                padding: 0 20px;
+            }
+            .container {
+                max-width: calc(100% - 600px);
+                margin: 20px auto;
+                padding: 20px;
+                box-sizing: border-box;
+                background-color: #fff;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+            .timer-bar{
+              margin-top: 50px;
+            }
+            .sidebar {
+                position: sticky;
+                top: 100px;
+                margin-left: auto;
+                width: 300px;
+                height: calc(100vh - 100px);
+                overflow-y: auto;
+                background-color: #f8f9fa;
+                transition: right 0.4s ease;
+                box-shadow: -3px 0 10px rgba(0, 0, 0, 0.2);
+                padding: 20px;
+                z-index: 1000;
+                margin-top: 70px;
+            }
+            .toggle-btn {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h3 id="quiz-title">Quiz Application</h3>
+    <button class="toggle-btn" id="toggle-btn" onclick="toggleSidebar()">☰</button>
+    <button class="cross" id="cross-btn" onclick="toggleSidebar()">✕</button>
+</div>
+<div id="landing-page">
+    <div>
+        <h2 style="color: orange;">Welcome to the Xam Aspirants Quiz Challenge!</h2>
+        <p>Enter your name to begin the quiz and test your knowledge.</p>
+        <form id="start-quiz-form">
+            <div class="form-group">
+                <input type="text" id="studentName" class="form-control" placeholder="Your Name" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Start Quiz</button>
+        </form>
+    </div>
+</div>
+<div id="quiz-wrapper" class="main-wrapper" style="display: none;">
+<div class="container">
+    <!-- Timer Bar -->
+    <div class="timer-bar d-flex justify-content-between">
+        <span id="timer-label">Time Left: <span id="timer">1:00</span></span>
+        <span id="score-display" style="display: none;">Score: 0</span>
+    </div>
+
+    <!-- Quiz Section -->
+    <div id="quiz-section">
+        <div class="question-card">
+            <h5 id="question">Loading question...</h5>
+            <div class="options" id="options"></div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="d-flex justify-content-between">
+            <button class="btn btn-warning" id="mark-review">Mark for Review</button>
+            <button class="btn btn-secondary" id="clear-answer">Clear</button>
+            <button class="btn btn-primary" id="next-question">Save & Next</button>
+        </div>
+
+        <!-- Answers Display Section -->
+        <div id="answers-display" style="margin-top: 20px;"></div>
+
+        <!-- Results Button -->
+        <button class="btn btn-info w-100 mt-3" id="show-results" style="display: none;" onclick="showResultsModal()">Show Detailed Results</button>
+    </div>
+</div>
+
+<!-- Sidebar Navigation Panel -->
+<div id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+        <span>Question Navigator</span>
+    </div>
+    <div class="question-grid" id="question-grid"></div>
+    <button class="btn btn-primary w-100 mt-3" onclick="submitTest()">Submit Test</button>
+    <button class="btn btn-primary w-100 mt-3" id="reattempt-button" style="display: none;">Reattempt Quiz</button>
+</div>
+
+<!-- Results Modal -->
+<div class="modal fade" id="resultsModal" tabindex="-1" role="dialog" aria-labelledby="resultsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resultsModalLabel">Quiz Results</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="results">
+                <!-- Results will be populated here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="restartQuiz()">Take Quiz Again</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+
+<!-- Footer -->
+<footer class="footer bg-info">
+    
+        <p>&copy; 2024 Xam Aspirants. All rights reserved.</p>
+    
+</footer>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.7/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+// Sample Questions Data
+const questions = [
+  { text: "In which state is Jim Corbett National Park located?", options: ["Uttarakhand", "Madhya Pradesh", "Rajasthan", "Gujarat"], answer: 0 },
+  { text: "Kaziranga National Park, famous for one-horned rhinoceros, is located in which Indian state?", options: ["Assam", "West Bengal", "Odisha", "Karnataka"], answer: 0 },
+  { text: "Which national park is known as the 'Gateway of Chhattisgarh'?", options: ["Indravati National Park", "Kanha National Park", "Navegaon National Park", "Sanjay Gandhi National Park"], answer: 0 },
+  { text: "Where is the Ranthambore National Park located?", options: ["Uttar Pradesh", "Maharashtra", "Rajasthan", "Haryana"], answer: 2 },
+  { text: "Sundarbans National Park is located in which Indian state?", options: ["Andhra Pradesh", "Odisha", "West Bengal", "Assam"], answer: 2 },
+  { text: "Which national park in India is known for its population of snow leopards?", options: ["Hemis National Park", "Bandhavgarh National Park", "Jim Corbett National Park", "Sariska National Park"], answer: 0 },
+  { text: "Bandipur National Park is located in which Indian state?", options: ["Tamil Nadu", "Karnataka", "Kerala", "Andhra Pradesh"], answer: 1 },
+  { text: "In which state is Periyar National Park situated?", options: ["Karnataka", "Kerala", "Tamil Nadu", "Telangana"], answer: 1 },
+  { text: "In which state is Kanha National Park located?", options: ["Madhya Pradesh", "Chhattisgarh", "Odisha", "Maharashtra"], answer: 0 },
+  { text: "Which national park is known as the 'Tiger Reserve of Rajasthan'?", options: ["Ranthambore National Park", "Keoladeo National Park", "Gir National Park", "Panna National Park"], answer: 0 },
+  { text: "In which state is Valley of Flowers National Park located?", options: ["Jammu and Kashmir", "Uttarakhand", "Himachal Pradesh", "Sikkim"], answer: 1 },
+  { text: "Manas National Park is famous for which animal?", options: ["Elephant", "One-horned Rhinoceros", "Royal Bengal Tiger", "Leopard"], answer: 1 },
+  { text: "Which national park in India has the largest population of lions?", options: ["Gir National Park", "Kanha National Park", "Sundarbans National Park", "Bandipur National Park"], answer: 0 },
+  { text: "Which of the following is a national park in Himachal Pradesh?", options: ["Great Himalayan National Park", "Nanda Devi National Park", "Manas National Park", "Ranthambore National Park"], answer: 0 },
+  { text: "Which national park is famous for its floating vegetation called 'Phumdis'?", options: ["Keibul Lamjao National Park", "Bandhavgarh National Park", "Kaziranga National Park", "Sundarbans National Park"], answer: 0 },
+  { text: "Where is the Sariska Tiger Reserve located?", options: ["Madhya Pradesh", "Gujarat", "Rajasthan", "Uttar Pradesh"], answer: 2 },
+  { text: "Nanda Devi National Park is located in which Indian state?", options: ["Uttarakhand", "Sikkim", "West Bengal", "Nagaland"], answer: 0 },
+  { text: "The Dachigam National Park is located in which Indian state?", options: ["Himachal Pradesh", "Jammu and Kashmir", "Punjab", "Uttarakhand"], answer: 1 },
+  { text: "Which national park is the first marine national park in India?", options: ["Gulf of Mannar Marine National Park", "Gulf of Kutch Marine National Park", "Sundarbans National Park", "Keoladeo National Park"], answer: 1 },
+  { text: "Which national park is known for its large population of swamp deer?", options: ["Kaziranga National Park", "Kanha National Park", "Jim Corbett National Park", "Bandipur National Park"], answer: 1 },
+  { text: "Panna National Park is located in which state?", options: ["Madhya Pradesh", "Rajasthan", "Uttar Pradesh", "Bihar"], answer: 0 },
+  { text: "Which national park is located in the Western Ghats and is known for the Nilgiri tahr?", options: ["Eravikulam National Park", "Periyar National Park", "Nagarhole National Park", "Silent Valley National Park"], answer: 0 },
+  { text: "The Rajaji National Park is located in which state?", options: ["Jharkhand", "Uttarakhand", "Maharashtra", "Karnataka"], answer: 1 },
+  { text: "Which national park is also a UNESCO World Heritage Site in Assam?", options: ["Manas National Park", "Sundarbans National Park", "Valley of Flowers National Park", "Kanha National Park"], answer: 0 },
+  { text: "The Silent Valley National Park is located in which Indian state?", options: ["Tamil Nadu", "Kerala", "Karnataka", "Andhra Pradesh"], answer: 1 }
+];
+
+// Shuffle function
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+// Shuffle the questions
+shuffleArray(questions);
+
+let currentQuestionIndex = 0;
+let selectedOptionIndex = -1; // To track the selected option
+const markedForReview = new Set(); // To track questions marked for review
+const attemptedQuestions = new Set(); // To track attempted questions
+const selectedAnswers = new Array(questions.length).fill(null); // Store selected answers
+let timer; // Timer variable
+let quizSubmitted = false; // Track if the quiz has been submitted
+
+// Handle quiz start
+document.getElementById('start-quiz-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const studentName = document.getElementById('studentName').value;
+    document.getElementById('quiz-title').textContent = studentName;
+    document.getElementById('landing-page').style.display = 'none';
+    document.getElementById('quiz-wrapper').style.display = 'flex';
+    startTimer();
+    setupGrid();
+    loadQuestion(currentQuestionIndex);
+});
+
+function loadQuestion(index) {
+    const question = questions[index];
+    document.getElementById('question').textContent = `Q${index + 1}: ${question.text}`;
+    const optionsContainer = document.getElementById('options');
+    optionsContainer.innerHTML = '';
+
+    question.options.forEach((option, i) => {
+        const button = document.createElement('button');
+        button.className = 'option-btn';
+        button.textContent = option;
+
+        // Highlight the button if it was previously selected
+        if (selectedAnswers[index] === i) {
+            button.classList.add('selected');
+        }
+
+        // Disable buttons if the quiz is submitted
+        if (quizSubmitted) {
+            button.disabled = true;
+        } else {
+            button.onclick = () => selectOption(i);
+        }
+
+        optionsContainer.appendChild(button);
+    });
+
+    // Check if it's the last question to change the button text and functionality
+    const nextButton = document.getElementById('next-question');
+    if (index === questions.length - 1) {
+        nextButton.textContent = 'Submit';
+        nextButton.onclick = submitTest;
+    } else {
+        nextButton.textContent = 'Save & Next';
+        nextButton.onclick = nextQuestion;
+    }
+
+    // Display selected and correct answers if quiz is submitted
+    const answersDisplay = document.getElementById('answers-display');
+    if (quizSubmitted) {
+        const selectedAnswer = selectedAnswers[index] !== null ? question.options[selectedAnswers[index]] : "No Answer Selected";
+        const correctAnswer = question.options[question.answer];
+
+        answersDisplay.innerHTML = `
+            <p>Your Answer: <span class="${selectedAnswers[index] === question.answer ? 'correct-answer' : 'wrong-answer'}">${selectedAnswer}</span></p>
+            <p>Correct Answer: <span class="correct-answer">${correctAnswer}</span></p>
+        `;
+    } else {
+        answersDisplay.innerHTML = ''; // Clear the display if quiz has not been submitted
+    }
+
+    highlightCurrentGridButton(index);
+}
+
+function highlightCurrentGridButton(index) {
+    const gridButtons = document.querySelectorAll('.question-grid button');
+    gridButtons.forEach((button, i) => {
+        if (i === index) {
+            button.classList.add('status-current');
+        } else {
+            button.classList.remove('status-current');
+        }
+    });
+}
+
+function selectOption(optionIndex) {
+    clearSelectedAnswer();
+    const optionButtons = document.querySelectorAll('.option-btn');
+    optionButtons[optionIndex].classList.add('selected');
+    selectedOptionIndex = optionIndex; // Store the selected option index
+    selectedAnswers[currentQuestionIndex] = optionIndex; // Store the selected answer
+
+    // Mark this question as attempted
+    if (markedForReview.has(currentQuestionIndex)) {
+        markedForReview.delete(currentQuestionIndex); // Remove from review if option selected
+    }
+    attemptedQuestions.add(currentQuestionIndex);
+    updateGridStatus(currentQuestionIndex, 'status-attempted');
+}
+
+function markForReview() {
+    markedForReview.add(currentQuestionIndex);
+    updateGridStatus(currentQuestionIndex, 'status-marked'); // Set to yellow for review
+    // Remove from attemptedQuestions if it was previously added
+    attemptedQuestions.delete(currentQuestionIndex);
+    nextQuestion(); // Move to the next question
+}
+
+function clearSelectedAnswer() {
+    const selectedButtons = document.querySelectorAll('.option-btn.selected');
+    selectedButtons.forEach(button => {
+        button.classList.remove('selected');
+    });
+    // Clear the selected answer
+    selectedAnswers[currentQuestionIndex] = null;
+    // Update the grid status to unattempted if not marked for review
+    if (!markedForReview.has(currentQuestionIndex)) {
+        attemptedQuestions.delete(currentQuestionIndex);
+        updateGridStatus(currentQuestionIndex, 'status-unattempted');
+    }
+}
+
+function updateGridStatus(index, statusClass) {
+    const btn = document.getElementById(`q${index}`);
+    btn.className = statusClass;
+}
+
+function setupGrid() {
+    const questionGrid = document.getElementById('question-grid');
+    questionGrid.innerHTML = '';
+    questions.forEach((_, index) => {
+        const btn = document.createElement('button');
+        btn.id = `q${index}`;
+        btn.textContent = index + 1;
+
+        // Check for marked for review first
+        if (markedForReview.has(index)) {
+            btn.className = 'status-marked'; // Yellow for marked for review
+        } else if (attemptedQuestions.has(index)) {
+            btn.className = 'status-attempted'; // Green for attempted
+        } else {
+            btn.className = 'status-unattempted'; // Default color for unattempted
+        }
+
+        btn.onclick = () => {
+            currentQuestionIndex = index;
+            loadQuestion(index);
+            toggleSidebar();
+        };
+        questionGrid.appendChild(btn);
+    });
+
+    // Highlight the first question in the grid
+    highlightCurrentGridButton(currentQuestionIndex);
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const toggleButton = document.getElementById("toggle-btn");
+    const crossButton = document.getElementById("cross-btn");
+
+    sidebar.classList.toggle("open");
+
+    if (sidebar.classList.contains("open")) {
+        toggleButton.style.display = "none"; // Hide toggle button
+        crossButton.style.display = "block"; // Show cross button in mobile mode
+    } else {
+        toggleButton.style.display = "block"; // Show toggle button
+        crossButton.style.display = "none"; // Hide cross button
+    }
+}
+
+// Timer function (simple countdown)
+let timeRemaining = 1 * 60;
+
+function startTimer() {
+    timer = setInterval(() => {
+        if (timeRemaining > 0) {
+            timeRemaining--;
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            document.getElementById('timer').textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        } else {
+            clearInterval(timer);
+            submitTest(); // Automatically submit when time is up
+        }
+    }, 1000);
+}
+
+function nextQuestion() {
+    // Only update to unattempted-red if no option is selected and not marked for review
+    if (!markedForReview.has(currentQuestionIndex) && selectedAnswers[currentQuestionIndex] === null) {
+        updateGridStatus(currentQuestionIndex, 'status-unattempted-red'); // Mark as unattempted in red
+    }
+
+    if (currentQuestionIndex < questions.length - 1) {
+        currentQuestionIndex++;
+        loadQuestion(currentQuestionIndex);
+    }
+
+    // Change the button to "Submit" on the last question
+    if (currentQuestionIndex === questions.length - 1) {
+        const nextButton = document.getElementById('next-question');
+        nextButton.textContent = 'Submit';
+        nextButton.onclick = submitTest; // Change functionality to submit the test
+    }
+
+    // Reset selectedOptionIndex for the next question
+    selectedOptionIndex = -1;
+}
+
+function submitTest() {
+    if (quizSubmitted) {
+        alert("The quiz has already been submitted. You cannot change answers or resubmit.");
+        return;
+    }
+
+    // Stop the timer
+    clearInterval(timer);
+
+    // Calculate score and gather results
+    let score = 0;
+    let correctAnswersCount = 0; // Initialize correct answers count
+    const totalQuestions = questions.length;
+    const wrongAnswersList = [];
+
+    questions.forEach((question, index) => {
+        if (markedForReview.has(index)) {
+            return; // Skip marked questions
+        }
+
+        if (attemptedQuestions.has(index)) {
+            if (selectedAnswers[index] !== question.answer) {
+                wrongAnswersList.push({
+                    questionNumber: index + 1,
+                    question: question.text,
+                    selectedAnswer: question.options[selectedAnswers[index]],
+                    correctAnswer: question.options[question.answer]
+                });
+                // Apply negative marking for incorrect answers
+                score -= 0.5; // Deduct 0.5 points for a wrong answer
+            } else {
+                score += 2; // Each correct answer is worth 2 points
+                correctAnswersCount++; // Increment correct answers count
+            }
+        }
+    });
+
+    const notAttemptedQuestionsCount = totalQuestions - attemptedQuestions.size - markedForReview.size;
+
+    // Show results in the modal
+    displayResults(score, totalQuestions, attemptedQuestions.size, correctAnswersCount, notAttemptedQuestionsCount, wrongAnswersList);
+
+    // Mark quiz as submitted
+    quizSubmitted = true;
+
+    // Display the score in the timer bar
+    document.getElementById('timer-label').style.display = 'none';
+    document.getElementById('score-display').style.display = 'block';
+    document.getElementById('score-display').textContent = `Score: ${score.toFixed(1)}`;
+
+    // Show the reattempt button in the sidebar
+    document.getElementById('reattempt-button').style.display = 'block';
+
+    // Show the results button
+    document.getElementById('show-results').style.display = 'block';
+    
+    // Load the first question to show answers
+    currentQuestionIndex = 0;
+    loadQuestion(currentQuestionIndex);
+
+    // Automatically show the results modal
+    showResultsModal();
+}
+
+function displayResults(score, totalQuestions, attemptedQuestionsCount, correctAnswersCount, notAttemptedQuestionsCount, wrongAnswersList) {
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = `
+        <h3>Your Score: ${score.toFixed(1)} out of ${totalQuestions * 2}</h3>
+        <p>Attempted Questions: ${attemptedQuestionsCount}</p>
+        <p>Not Attempted Questions: ${notAttemptedQuestionsCount}</p>
+        <p>Correct Answers: ${correctAnswersCount}</p>
+        <p>Marked for Review: ${markedForReview.size}</p>
+        <p>Wrong Answers: ${wrongAnswersList.length}</p>
+        <ul class="results-list">
+            ${wrongAnswersList.map(answer => `
+                <li><strong>Q${answer.questionNumber}:</strong> ${answer.question} 
+                <br>Your Answer: <span class="wrong-answer">${answer.selectedAnswer}</span> 
+                <br>Correct Answer: <span class="correct-answer">${answer.correctAnswer}</span>
+                </li>`).join('')}
+        </ul>
+    `;
+}
+
+function showResultsModal() {
+    $('#resultsModal').modal('show'); // Show the modal with the results
+}
+
+function restartQuiz() {
+    // Close the results modal
+    $('#resultsModal').modal('hide'); // This line will hide the modal
+
+    // Reset the quiz state and reload the first question
+    currentQuestionIndex = 0;
+    selectedOptionIndex = -1;
+    markedForReview.clear();
+    attemptedQuestions.clear();
+    selectedAnswers.fill(null); // Clear selected answers
+
+    // Reset timer
+    timeRemaining = 1 * 60; // Reset the timer to the initial time (e.g., 1 minute)
+    document.getElementById('timer').textContent = "1:00"; // Reset timer display
+    startTimer(); // Start the timer
+
+    quizSubmitted = false; // Reset the submitted state
+
+    // Hide score display and show timer again
+    document.getElementById('score-display').style.display = 'none';
+    document.getElementById('timer-label').style.display = 'block';
+
+    setupGrid();
+    loadQuestion(currentQuestionIndex);
+
+    // Hide the reattempt button
+    document.getElementById('reattempt-button').style.display = 'none';
+    
+    // Hide the results button
+    document.getElementById('show-results').style.display = 'none';
+
+    // Reset sidebar and toggle button visibility
+    const sidebar = document.getElementById("sidebar");
+    const toggleButton = document.getElementById("toggle-btn");
+    const crossButton = document.getElementById("cross-btn");
+
+    sidebar.classList.remove("open");
+    toggleButton.style.display = "block"; // Show toggle button for mobile
+    crossButton.style.display = "none"; // Ensure cross button is hidden initially
+}
+
+// Initialize
+setupGrid();
+loadQuestion(currentQuestionIndex);
+
+// Add event listener for the buttons
+document.getElementById('mark-review').onclick = markForReview;
+document.getElementById('clear-answer').onclick = clearSelectedAnswer;
+document.getElementById('next-question').onclick = nextQuestion;
+document.getElementById('reattempt-button').onclick = restartQuiz; // New reattempt button
+
+</script>
+
+</body>
+</html>
+
+
+
