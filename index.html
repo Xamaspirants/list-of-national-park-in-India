@@ -667,6 +667,25 @@ function nextQuestion() {
     selectedOptionIndex = -1;
 }
 
+// Function to send the student's name and score to Google Sheets
+function sendResultsToGoogleSheets(studentName, score) {
+    const formData = new FormData();
+    formData.append('name', studentName);
+    formData.append('score', score);
+
+    fetch('https://script.google.com/macros/s/AKfycbzs41Y8hsQboI3Xn6dUSsY5s3YOfLMgD5O6DVRMN6Hql2U3YF7288jnoVYmVG6Vtecy/exec', { // Replace with your Web App URL
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(data => {
+        console.log('Success:', data);  // You can show a success message to the user here
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
 function submitTest() {
     if (quizSubmitted) {
         alert("The quiz has already been submitted. You cannot change answers or resubmit.");
@@ -695,7 +714,6 @@ function submitTest() {
                     selectedAnswer: question.options[selectedAnswers[index]],
                     correctAnswer: question.options[question.answer]
                 });
-                // Apply negative marking for incorrect answers
                 score -= 0.5; // Deduct 0.5 points for a wrong answer
             } else {
                 score += 2; // Each correct answer is worth 2 points
@@ -729,6 +747,10 @@ function submitTest() {
 
     // Automatically show the results modal
     showResultsModal();
+
+    // Send data to Google Sheets
+    const studentName = document.getElementById('studentName').value;
+    sendResultsToGoogleSheets(studentName, score.toFixed(1)); // Call the function here
 }
 
 function displayResults(score, totalQuestions, attemptedQuestionsCount, correctAnswersCount, notAttemptedQuestionsCount, wrongAnswersList) {
